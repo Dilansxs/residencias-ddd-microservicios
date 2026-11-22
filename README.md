@@ -12,9 +12,31 @@ El dominio y la aplicación dependen de puertos; las implementaciones de SQLite 
 - Python 3.10 o superior
 - Docker Desktop con Docker Compose, iniciado
 
-## Instalación y ejecución
+## Ejecución con Docker
 
-Ejecuta estos comandos desde la raíz del proyecto. En Windows PowerShell, crea y activa el entorno virtual e instala la dependencia:
+Docker Compose crea tres contenedores: RabbitMQ, monitoreo de salud y gestión de alertas. Los servicios se conectan al broker por el nombre `rabbitmq`; Compose espera a que esté saludable antes de iniciarlos. Sus bases SQLite se conservan en volúmenes separados.
+
+```powershell
+docker compose up --build -d
+```
+
+Consulta los registros de los servicios:
+
+```powershell
+docker compose logs -f monitoreo_salud gestion_alertas
+```
+
+El panel de RabbitMQ está disponible en `http://localhost:15672`. Para desarrollo local, el usuario y contraseña predeterminados son `residencias` y `residencias_dev`; puedes cambiarlos definiendo `RABBITMQ_USER` y `RABBITMQ_PASSWORD` en el entorno antes de iniciar Compose.
+
+Detén los contenedores sin borrar las bases de datos:
+
+```powershell
+docker compose down
+```
+
+## Ejecución local opcional
+
+Requiere Python 3.10 o superior. Crea y activa un entorno virtual en PowerShell e instala la dependencia:
 
 ```powershell
 python -m venv .venv
@@ -22,20 +44,9 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-Inicia RabbitMQ:
-
-```powershell
-docker compose up -d
-```
-
-Abre dos terminales, ambas en la raíz del proyecto y con el entorno virtual activado. Ejecuta un servicio en cada terminal:
+Inicia RabbitMQ con `docker compose up -d rabbitmq` y ejecuta cada servicio desde la raíz del proyecto, en terminales separadas:
 
 ```powershell
 python -m gestion_alertas.main
-```
-
-```powershell
 python -m monitoreo_salud.main RES-01
 ```
-
-El monitoreo registra las lecturas en `telemetria_res-01.db`; las alertas recibidas se guardan en `alertas_plataforma.db`. Ambos archivos son locales y están excluidos de Git.

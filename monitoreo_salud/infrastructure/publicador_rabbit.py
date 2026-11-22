@@ -6,9 +6,17 @@ from monitoreo_salud.domain.events import AnomaliaSaludDetectada
 
 
 class PublicadorEventosRabbit(PublicadorEventos):
-    def __init__(self, host: str, cola: str) -> None:
+    def __init__(
+        self,
+        host: str,
+        cola: str,
+        usuario: str = "guest",
+        contrasena: str = "guest",
+    ) -> None:
         self._cola = cola
-        self._conexion = pika.BlockingConnection(pika.ConnectionParameters(host=host))
+        credenciales = pika.PlainCredentials(usuario, contrasena)
+        parametros = pika.ConnectionParameters(host=host, credentials=credenciales)
+        self._conexion = pika.BlockingConnection(parametros)
         self._canal = self._conexion.channel()
         self._canal.queue_declare(queue=self._cola, durable=True)
 

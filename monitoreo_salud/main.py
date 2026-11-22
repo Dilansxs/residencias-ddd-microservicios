@@ -1,5 +1,6 @@
 import sys
 import time
+from pathlib import Path
 
 from monitoreo_salud.application.use_cases import EvaluarLecturas
 from monitoreo_salud.domain.services import DeteccionAnomalia
@@ -8,6 +9,9 @@ from monitoreo_salud.infrastructure.config import (
     COLA_ANOMALIAS,
     LIMITES_LOCALES,
     RABBITMQ_HOST,
+    RABBITMQ_PASSWORD,
+    RABBITMQ_USER,
+    TELEMETRIA_DB_DIR,
 )
 from monitoreo_salud.infrastructure.dispositivo_simulado import DispositivoSimulado
 from monitoreo_salud.infrastructure.lectura_sqlite import LecturaRelacionalSQLite
@@ -17,11 +21,18 @@ from monitoreo_salud.infrastructure.publicador_rabbit import PublicadorEventosRa
 def main() -> None:
     codigo_residencia = sys.argv[1] if len(sys.argv) > 1 else "RES-01"
     residencia_id = IdentificadorResidencia(codigo_residencia)
-    ruta_bd = f"telemetria_{codigo_residencia.lower()}.db"
+    ruta_bd = str(
+        Path(TELEMETRIA_DB_DIR) / f"telemetria_{codigo_residencia.lower()}.db"
+    )
 
     dispositivo = DispositivoSimulado(residencia_id)
     repositorio = LecturaRelacionalSQLite(ruta_bd)
-    publicador = PublicadorEventosRabbit(RABBITMQ_HOST, COLA_ANOMALIAS)
+    publicador = PublicadorEventosRabbit(
+        RABBITMQ_HOST,
+        COLA_ANOMALIAS,
+        RABBITMQ_USER,
+        RABBITMQ_PASSWORD,
+    )
     detector = DeteccionAnomalia(LIMITES_LOCALES)
     caso_uso = EvaluarLecturas(detector, repositorio, publicador)
 

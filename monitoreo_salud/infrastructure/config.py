@@ -1,6 +1,11 @@
+import os
+
 from monitoreo_salud.domain.value_objects import Limite
 
-RABBITMQ_HOST = "localhost"
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
+RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
+RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
+TELEMETRIA_DB_DIR = os.getenv("TELEMETRIA_DB_DIR", ".")
 COLA_ANOMALIAS = "anomalias_salud"
 
 LIMITES_LOCALES: dict[str, Limite] = {

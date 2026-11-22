@@ -5,10 +5,19 @@ from gestion_alertas.application.use_cases import ProcesarAnomaliaSalud
 
 
 class ConsumidorEventosRabbit:
-    def __init__(self, host: str, cola: str, caso_uso: ProcesarAnomaliaSalud) -> None:
+    def __init__(
+        self,
+        host: str,
+        cola: str,
+        caso_uso: ProcesarAnomaliaSalud,
+        usuario: str = "guest",
+        contrasena: str = "guest",
+    ) -> None:
         self._cola = cola
         self._caso_uso = caso_uso
-        self._conexion = pika.BlockingConnection(pika.ConnectionParameters(host=host))
+        credenciales = pika.PlainCredentials(usuario, contrasena)
+        parametros = pika.ConnectionParameters(host=host, credentials=credenciales)
+        self._conexion = pika.BlockingConnection(parametros)
         self._canal = self._conexion.channel()
         self._canal.queue_declare(queue=self._cola, durable=True)
 
